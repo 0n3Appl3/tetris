@@ -1,6 +1,6 @@
 import java.awt.*;
 
-public class Z implements Shape {
+public class Z extends Shape {
     Color color = new Color(86, 204, 57);
 
     @Override
@@ -13,8 +13,23 @@ public class Z implements Shape {
     }
 
     @Override
-    public void rotate() {
-
+    public Block[] rotate() {
+        switch (index) {
+            case 0:
+                blocks[0].setRelativePosition(1, 1); 
+                blocks[1].setRelativePosition(2, 0);
+                blocks[3].setRelativePosition(-1, 1);
+                break;
+            case 1:
+                blocks[0].setRelativePosition(-1, -1);
+                blocks[1].setRelativePosition(-2, 0);
+                blocks[3].setRelativePosition(1, -1);
+                break;
+            default:
+                break;
+        }
+        setNextRotation(2);
+        return blocks;
     }
     
 }

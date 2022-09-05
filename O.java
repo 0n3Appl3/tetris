@@ -1,6 +1,6 @@
 import java.awt.*;
 
-public class O implements Shape {
+public class O extends Shape {
     Color color = new Color(227, 211, 36);
 
     @Override
@@ -13,8 +13,8 @@ public class O implements Shape {
     }
 
     @Override
-    public void rotate() {
-
+    public Block[] rotate() {
+        return blocks;
     }
     
 }

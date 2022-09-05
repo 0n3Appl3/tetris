@@ -18,6 +18,8 @@ public class Window extends JPanel {
     Block[] activeBlocks = new Block[4];
     Block lowestActiveBlock;
 
+    Shape shape;
+
     public Window(int width, int height) {
         InputMap im = getInputMap(WHEN_FOCUSED);
         ActionMap am = getActionMap();
@@ -28,6 +30,7 @@ public class Window extends JPanel {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "onLeft");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "onRight");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "onDown");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "onUp");
 
         /*
          * Key Events (Player Controls)
@@ -35,19 +38,25 @@ public class Window extends JPanel {
         am.put("onLeft", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                move(-1, true);
+                move(-1, true, false);
             }
         });
         am.put("onRight", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                move(1, true);
+                move(1, true, false);
             }
         });
         am.put("onDown", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                move(1, false);
+                move(1, false, false);
+            }
+        });
+        am.put("onUp", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                move(0, false, true);
             }
         });
 
@@ -98,7 +107,7 @@ public class Window extends JPanel {
          */
         if (!placed) {
             if (movementTimer == 1000) {
-                move(1, false);
+                move(1, false, false);
                 movementTimer = 0;
             }
             movementTimer++;
@@ -112,17 +121,25 @@ public class Window extends JPanel {
         /*
          * Draw
          */
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 18; j++) {
-                Block b = gameFrame[i][j];
+        // System.out.println("-----");
+        // String t = "";
+        for (int i = 0; i < frameY; i++) {
+            // t = "";
+            for (int j = 0; j < frameX; j++) {
+                Block b = gameFrame[j][i];
 
-                if (b != null)
+                if (b != null) {
                     b.draw(g, paddX, paddY);
+                    // t += "1";
+                } else {
+                    // t += "0";
+                }
             }
+            // System.out.println(t);
         }
     }
 
-    public void move(int magnitude, boolean horizontal) {
+    public void move(int magnitude, boolean horizontal, boolean rotate) {
         Block[] temp = new Block[4];
 
         if (horizontal) {
@@ -136,43 +153,50 @@ public class Window extends JPanel {
             temp[i] = tempB;
             gameFrame[tempB.getFrameX()][tempB.getFrameY()] = null;
         }
+        activeBlocks = temp;
 
-        for (Block b : temp) {
-            if (horizontal)
-                b.setFrameX(b.getFrameX() + magnitude);
-            else
-                b.setFrameY(b.getFrameY() + 1);
+        if (rotate)
+            activeBlocks = shape.rotate();
+
+        for (Block b : activeBlocks) {
+            if (!rotate) {
+                if (horizontal)
+                    b.setFrameX(b.getFrameX() + magnitude);
+                else
+                    b.setFrameY(b.getFrameY() + 1);
+            }
             gameFrame[b.getFrameX()][b.getFrameY()] = b;
         }
+        shape.saveState(activeBlocks);
     }
 
     public void createTetromino() {
+        shape = new Z();
         int rand = (int) (Math.random() * 8);
 
         switch (rand) {
             case 0:
-                activeBlocks = new I().draw();
+                shape = new I();
                 break;
             case 1:
-                activeBlocks = new O().draw();
+                shape= new O();
                 break;
             case 2:
-                activeBlocks = new T().draw();
+                shape = new T();
                 break;
             case 3:
-                activeBlocks = new J().draw();
+                shape = new J();
                 break;
             case 4:
-                activeBlocks = new L().draw();
+                shape = new L();
                 break;
             case 5:
-                activeBlocks = new S().draw();
+                shape = new S();
                 break;
             case 6:
-                activeBlocks = new Z().draw();
-                break;
             default:
                 break;
         }
+        activeBlocks = shape.draw();
     }
 }

@@ -1,6 +1,6 @@
 import java.awt.*;
 
-public class I implements Shape {
+public class I extends Shape {
     Color color = new Color(222, 44, 44);
 
     @Override
@@ -13,8 +13,23 @@ public class I implements Shape {
     }
 
     @Override
-    public void rotate() {
-
+    public Block[] rotate() {
+        switch (index) {
+            case 0:
+                blocks[0].setRelativePosition(-1, 1); 
+                blocks[2].setRelativePosition(1, 1);
+                blocks[3].setRelativePosition(2, -2);
+                break;
+            case 1:
+                blocks[0].setRelativePosition(1, -1);
+                blocks[2].setRelativePosition(-1, -1);
+                blocks[3].setRelativePosition(-2, 2);
+                break;
+            default:
+                break;
+        }
+        setNextRotation(2);
+        return blocks;
     }
     
 }

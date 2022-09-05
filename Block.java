@@ -41,4 +41,9 @@ public class Block extends JComponent {
     public void setLanded(boolean landed) {
         _landed = landed;
     }
+
+    public void setRelativePosition(int x, int y) {
+        _frameX += x;
+        _frameY += y;
+    }
 }
