@@ -17,12 +17,12 @@ public class I extends Shape {
         switch (index) {
             case 0:
                 blocks[0].setRelativePosition(-1, 1); 
-                blocks[2].setRelativePosition(1, 1);
+                blocks[2].setRelativePosition(1, -1);
                 blocks[3].setRelativePosition(2, -2);
                 break;
             case 1:
                 blocks[0].setRelativePosition(1, -1);
-                blocks[2].setRelativePosition(-1, -1);
+                blocks[2].setRelativePosition(-1, 1);
                 blocks[3].setRelativePosition(-2, 2);
                 break;
             default:

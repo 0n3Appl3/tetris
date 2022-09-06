@@ -115,7 +115,7 @@ public class Window extends JPanel {
             placed = false;
             for (Block b2 : activeBlocks)
                 b2.setLanded(true);
-            createTetromino();
+            checkLineClearing();
         }
 
         /*
@@ -137,6 +137,55 @@ public class Window extends JPanel {
             }
             // System.out.println(t);
         }
+    }
+
+    public void checkLineClearing() {
+        boolean filled = true;
+        boolean foundRow = false;
+        int emptySlotsInRow = 0;
+        int fullRowEmpty = 10;
+        int topRow = 0;
+        int clearRow = 0;
+
+        for (int i = frameY - 1; i >= 0; i--) {
+            filled = true;
+            emptySlotsInRow = 0;
+            for (int j = frameX - 1; j >= 0; j--) {
+                Block b = gameFrame[j][i];
+                if (b == null) {
+                    filled = false;
+                    emptySlotsInRow++;
+                }
+                if (emptySlotsInRow == fullRowEmpty) {
+                    topRow = i + 1;
+                    break;
+                }
+            }
+            if (filled && !foundRow) {
+                clearRow = i;
+                foundRow = true;
+            }
+            if (emptySlotsInRow == fullRowEmpty)
+                break;
+        }
+
+        if (foundRow) {
+            for (int k = 0; k < frameX; k++) {
+                gameFrame[k][clearRow] = null;
+            }
+            for (int l = clearRow - 1; l >= topRow; l--) {
+                for (int m = 0; m < frameX; m++) {
+                    Block b2 = gameFrame[m][l];
+                    if (b2 != null) {
+                        b2.setFrameY(b2.getFrameY() + 1);
+                        gameFrame[b2.getFrameX()][b2.getFrameY()] = b2;
+                    } 
+                    gameFrame[m][l] = null;
+                }
+            }
+            checkLineClearing();
+        }
+        createTetromino();
     }
 
     public void move(int magnitude, boolean horizontal, boolean rotate) {
