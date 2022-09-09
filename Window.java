@@ -18,7 +18,8 @@ public class Window extends JPanel {
     Block[] activeBlocks = new Block[4];
     Block lowestActiveBlock;
 
-    Shape shape;
+    Shape shape = null;
+    Shape nextShape = null;
 
     public Window(int width, int height) {
         InputMap im = getInputMap(WHEN_FOCUSED);
@@ -79,9 +80,12 @@ public class Window extends JPanel {
         g2.setColor(Color.WHITE);
         g2.setStroke(new BasicStroke(1));
         g2.drawRect(paddX, paddY, gameW, gameH);
-        g.drawRect(15, paddY, 100, 200);
-        g.setFont(new Font("Helvetica", Font.PLAIN, 14));
+        // g.drawRect(15, paddY, 100, 200); 
+        g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
+        g.drawString("NEXT", 25, paddY + 13);
         g.drawString("Work In Progress", paddX + gameW + 20, paddY + 20);
+        if (nextShape != null)
+            nextShape.previewShape(g);
 
         /*
          * Collision Checking
@@ -184,6 +188,7 @@ public class Window extends JPanel {
                 }
             }
             checkLineClearing();
+            return;
         }
         createTetromino();
     }
@@ -220,32 +225,42 @@ public class Window extends JPanel {
     }
 
     public void createTetromino() {
-        shape = new Z();
+        if (shape == null)
+            shape = pickNextTetromino();
+        else
+            shape = nextShape;
+        nextShape = pickNextTetromino();
+        activeBlocks = shape.draw();
+
+    }
+
+    public Shape pickNextTetromino() {
+        Shape s = new Z();
         int rand = (int) (Math.random() * 8);
 
         switch (rand) {
             case 0:
-                shape = new I();
+                s = new I();
                 break;
             case 1:
-                shape= new O();
+                s = new O();
                 break;
             case 2:
-                shape = new T();
+                s = new T();
                 break;
             case 3:
-                shape = new J();
+                s = new J();
                 break;
             case 4:
-                shape = new L();
+                s = new L();
                 break;
             case 5:
-                shape = new S();
+                s = new S();
                 break;
             case 6:
             default:
                 break;
         }
-        activeBlocks = shape.draw();
+        return s;
     }
 }

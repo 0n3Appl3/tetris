@@ -2,10 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 
 public class Block extends JComponent {
-    Color _color;
-    int size = 25;
-    int _frameX, _frameY;
-    boolean _landed = false;
+    private Color _color;
+    private int size = 25;
+    private int _frameX, _frameY;
+    private boolean _landed = false;
 
     public Block(int frameX, int frameY, Color color) {
         _frameX = frameX;
@@ -28,6 +28,14 @@ public class Block extends JComponent {
 
     public boolean hasLanded() {
         return _landed;
+    }
+
+    public Color getColor() {
+        return _color;
+    }
+
+    public int getBlockSize() {
+        return size;
     }
 
     public void setFrameX(int frameX) {

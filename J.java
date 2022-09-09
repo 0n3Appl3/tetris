@@ -1,15 +1,10 @@
 import java.awt.*;
 
 public class J extends Shape {
-    Color color = new Color(196, 113, 52);
-
-    @Override
-    public Block[] draw() {
-        blocks[0] = new Block(4, 0, color);
-        blocks[1] = new Block(4, 1, color);
-        blocks[2] = new Block(4, 2, color);
-        blocks[3] = new Block(3, 2, color);
-        return blocks;
+    public J() {
+        color = new Color(196, 113, 52);
+        x = new int[] { 4, 4, 4, 3 };
+        y = new int[] { 0, 1, 2, 2 };
     }
 
     @Override
@@ -41,5 +36,4 @@ public class J extends Shape {
         setNextRotation(4);
         return blocks;
     }
-    
 }
