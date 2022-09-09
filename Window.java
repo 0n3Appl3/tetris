@@ -11,8 +11,12 @@ public class Window extends JPanel {
     int frameX = 10;
     int frameY = 18;
     int movementTimer = 0;
+    int currentLevel = 0;
+    int period = 1000;
     boolean collisionFound = false;
     boolean placed = false;
+
+    Level level = null;
 
     Block[][] gameFrame = new Block[frameX][frameY];
     Block[] activeBlocks = new Block[4];
@@ -71,6 +75,7 @@ public class Window extends JPanel {
             }
         });
 
+        level = new Level();
         _width = width;
         _height = height;
         paddX = _width / 4;
@@ -90,10 +95,14 @@ public class Window extends JPanel {
         g2.setColor(Color.WHITE);
         g2.setStroke(new BasicStroke(1));
         g2.drawRect(paddX, paddY, gameW, gameH);
-        // g.drawRect(15, paddY, 100, 200); 
         g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
         g.drawString("NEXT", 25, paddY + 13);
-        g.drawString("Work In Progress", paddX + gameW + 20, paddY + 20);
+        g.drawString("LEVEL", paddX + gameW + 20, paddY + 13);
+        g.drawString("SCORE", paddX + gameW + 20, paddY + 70);
+        g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 18));
+        g.drawString(String.valueOf(level.getLevel()), paddX + gameW + 20, paddY + 40);
+        g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + gameW + 20, paddY + 97);
+
         if (nextShape != null)
             nextShape.previewShape(g);
 
@@ -106,7 +115,7 @@ public class Window extends JPanel {
          * Movement
          */
         if (!placed) {
-            if (movementTimer == 1000) {
+            if (movementTimer == period) {
                 move(1, false, false);
                 movementTimer = 0;
             }
@@ -115,6 +124,7 @@ public class Window extends JPanel {
             placed = false;
             for (Block b2 : activeBlocks)
                 b2.setLanded(true);
+            level.addScore(1);
             checkLineClearing();
         }
 
@@ -201,8 +211,14 @@ public class Window extends JPanel {
                     gameFrame[m][l] = null;
                 }
             }
+            level.addLinesCleared();
+            level.addScore(10);
             checkLineClearing();
             return;
+        }
+        if (level.getLevel() > currentLevel) {
+            currentLevel = level.getLevel();
+            period -= 50;
         }
         createTetromino();
     }
