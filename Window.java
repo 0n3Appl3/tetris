@@ -32,6 +32,7 @@ public class Window extends JPanel {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "onRight");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "onDown");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "onUp");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "onSpace");
 
         /*
          * Key Events (Player Controls)
@@ -58,6 +59,15 @@ public class Window extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 move(0, false, true);
+            }
+        });
+        am.put("onSpace", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                while (!placed) {
+                    move(1, false, false);
+                    checkPlaced();
+                }
             }
         });
 
@@ -90,21 +100,7 @@ public class Window extends JPanel {
         /*
          * Collision Checking
          */
-        for (int i = 0; i < activeBlocks.length; i++) {
-            Block block = activeBlocks[i];
-            if (block.getFrameY() + 1 > frameY - 1) {
-                placed = true;
-                break;
-            }
-            if (gameFrame[block.getFrameX()][block.getFrameY() + 1] != null) {
-                Block blockBelow = gameFrame[block.getFrameX()][block.getFrameY() + 1];
-
-                if (blockBelow.hasLanded()) {
-                    placed = true;
-                    break;
-                }
-            }
-        }
+        checkPlaced();
 
         /*
          * Movement
@@ -140,6 +136,24 @@ public class Window extends JPanel {
                 }
             }
             // System.out.println(t);
+        }
+    }
+
+    public void checkPlaced() {
+        for (int i = 0; i < activeBlocks.length; i++) {
+            Block block = activeBlocks[i];
+            if (block.getFrameY() + 1 > frameY - 1) {
+                placed = true;
+                break;
+            }
+            if (gameFrame[block.getFrameX()][block.getFrameY() + 1] != null) {
+                Block blockBelow = gameFrame[block.getFrameX()][block.getFrameY() + 1];
+
+                if (blockBelow.hasLanded()) {
+                    placed = true;
+                    break;
+                }
+            }
         }
     }
 
@@ -195,10 +209,14 @@ public class Window extends JPanel {
 
     public void move(int magnitude, boolean horizontal, boolean rotate) {
         Block[] temp = new Block[4];
+        Block b2 = null;
 
         if (horizontal) {
             for (Block b : activeBlocks) {
                 if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > frameX - 1)
+                    return;
+                b2 = gameFrame[b.getFrameX() + magnitude][b.getFrameY()];
+                if (b2 != null && b2.hasLanded())
                     return;
             }
         }
