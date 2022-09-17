@@ -10,9 +10,15 @@ public class Window extends JPanel {
     int gameH = 450;
     int frameX = 10;
     int frameY = 18;
+
     int movementTimer = 0;
     int currentLevel = 0;
     int period = 1000;
+
+    int lineClearAlpha = 255;
+    int lineClearY = 0;
+    int lineClearSize = 0;
+
     boolean collisionFound = false;
     boolean placed = false;
 
@@ -115,7 +121,7 @@ public class Window extends JPanel {
          * Movement
          */
         if (!placed) {
-            if (movementTimer == period) {
+            if (movementTimer >= period) {
                 move(1, false, false);
                 movementTimer = 0;
             }
@@ -146,6 +152,11 @@ public class Window extends JPanel {
                 }
             }
             // System.out.println(t);
+        }
+        if (lineClearY != 0 && lineClearAlpha > 0) {
+            g.setColor(new Color(255, 255, 255, lineClearAlpha));
+            g.fillRect(paddX, paddY + (lineClearY * 25), gameW, 25);
+            lineClearAlpha--;
         }
     }
 
@@ -198,6 +209,10 @@ public class Window extends JPanel {
         }
 
         if (foundRow) {
+            lineClearAlpha = 255;
+            lineClearY = clearRow;
+            lineClearSize = gameFrame[0][lineClearY].getBlockSize();
+
             for (int k = 0; k < frameX; k++) {
                 gameFrame[k][clearRow] = null;
             }
@@ -218,7 +233,12 @@ public class Window extends JPanel {
         }
         if (level.getLevel() > currentLevel) {
             currentLevel = level.getLevel();
-            period -= 50;
+            if (period - 100 <= 0) {
+                if (period - 10 > 0)
+                    period -= 10;
+            } else {
+               period -= 100;
+            }
         }
         createTetromino();
     }
