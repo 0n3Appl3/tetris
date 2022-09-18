@@ -1,8 +1,10 @@
 import javax.swing.*;
+import javax.sound.sampled.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 public class Window extends JPanel {
     int _width, _height, paddX, paddY;
@@ -128,6 +130,7 @@ public class Window extends JPanel {
             movementTimer++;
         } else {
             placed = false;
+            playSound("tetromino_placed.wav");
             for (Block b2 : activeBlocks)
                 b2.setLanded(true);
             level.addScore(1);
@@ -212,6 +215,7 @@ public class Window extends JPanel {
             lineClearAlpha = 255;
             lineClearY = clearRow;
             lineClearSize = gameFrame[0][lineClearY].getBlockSize();
+            playSound("line_clear.wav");
 
             for (int k = 0; k < frameX; k++) {
                 gameFrame[k][clearRow] = null;
@@ -232,6 +236,7 @@ public class Window extends JPanel {
             return;
         }
         if (level.getLevel() > currentLevel) {
+            playSound("level_up.wav");
             currentLevel = level.getLevel();
             if (period - 100 <= 0) {
                 if (period - 10 > 0)
@@ -316,5 +321,17 @@ public class Window extends JPanel {
                 break;
         }
         return s;
+    }
+
+    public void playSound(String path) {
+        try {
+            File file = new File(path);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
     }
 }

@@ -12,11 +12,6 @@ public class Main {
         frame.setVisible(true);
         while (true) {
             frame.repaint();
-            // try {
-            //     Thread.sleep(500);
-            // } catch (Exception ex) {
-            //     System.out.println(ex);
-            // }
         }
     }
 }
