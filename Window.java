@@ -251,6 +251,8 @@ public class Window extends JPanel {
     public void move(int magnitude, boolean horizontal, boolean rotate) {
         Block[] temp = new Block[4];
         Block b2 = null;
+        boolean validLeftRotation = false;
+        boolean validRightRotation = false;
 
         if (horizontal) {
             for (Block b : activeBlocks) {
@@ -268,8 +270,28 @@ public class Window extends JPanel {
         }
         activeBlocks = temp;
 
-        if (rotate)
+        if (rotate) {
             activeBlocks = shape.rotate();
+            while (!validLeftRotation && !validRightRotation) {
+                validLeftRotation = true;
+                validRightRotation = true;
+
+                for (Block b : activeBlocks) {
+                    if (b.getFrameX() < 0)
+                        validLeftRotation = false;
+                    else if (b.getFrameX() > 9)
+                        validRightRotation = false;
+                }
+                if (!validLeftRotation || !validRightRotation) {
+                    for (Block b : activeBlocks) {
+                        if (!validLeftRotation)
+                            b.setFrameX(b.getFrameX() + 1);
+                        else
+                            b.setFrameX(b.getFrameX() - 1);
+                    }
+                }
+            }
+        }
 
         for (Block b : activeBlocks) {
             if (!rotate) {
