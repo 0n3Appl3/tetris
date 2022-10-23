@@ -3,10 +3,11 @@ import javax.sound.sampled.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-public class Window extends JPanel {
+public class Window extends JPanel implements ActionListener {
     int _width, _height, paddX, paddY;
     int gameW = 250;
     int gameH = 450;
@@ -15,7 +16,7 @@ public class Window extends JPanel {
 
     int movementTimer = 0;
     int currentLevel = 0;
-    int period = 1000;
+    int period = 100;
 
     int lineClearAlpha = 255;
     int lineClearY = 0;
@@ -24,6 +25,7 @@ public class Window extends JPanel {
     boolean collisionFound = false;
     boolean placed = false;
 
+    Timer timer = new Timer(33, this);
     Level level = null;
 
     Block[][] gameFrame = new Block[frameX][frameY];
@@ -89,6 +91,12 @@ public class Window extends JPanel {
         paddX = _width / 4;
         paddY = 20;
         createTetromino();
+        timer.start();
+    }
+
+    public void actionPerformed(ActionEvent ev) {
+        if (ev.getSource() == timer)
+            repaint();
     }
 
     public void paint(Graphics g) {
@@ -140,26 +148,22 @@ public class Window extends JPanel {
         /*
          * Draw
          */
-        // System.out.println("-----");
-        // String t = "";
-        for (int i = 0; i < frameY; i++) {
-            // t = "";
-            for (int j = 0; j < frameX; j++) {
-                Block b = gameFrame[j][i];
-
-                if (b != null) {
-                    b.draw(g, paddX, paddY);
-                    // t += "1";
-                } else {
-                    // t += "0";
-                }
-            }
-            // System.out.println(t);
-        }
+        displayBlocks(g);
         if (lineClearY != 0 && lineClearAlpha > 0) {
             g.setColor(new Color(255, 255, 255, lineClearAlpha));
             g.fillRect(paddX, paddY + (lineClearY * 25), gameW, 25);
-            lineClearAlpha--;
+            lineClearAlpha -= 10;
+        }
+    }
+
+    public void displayBlocks(Graphics g) {
+        for (int i = 0; i < frameY; i++) {
+            for (int j = 0; j < frameX; j++) {
+                Block b = gameFrame[j][i];
+
+                if (b != null)
+                    b.draw(g, paddX, paddY);
+            }
         }
     }
 
@@ -238,11 +242,11 @@ public class Window extends JPanel {
         if (level.getLevel() > currentLevel) {
             playSound("level_up.wav");
             currentLevel = level.getLevel();
-            if (period - 100 <= 0) {
-                if (period - 10 > 0)
-                    period -= 10;
+            if (period - 10 <= 0) {
+                if (period - 1 > 0)
+                    period--;
             } else {
-               period -= 100;
+               period -= 10;
             }
         }
         createTetromino();

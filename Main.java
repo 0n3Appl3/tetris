@@ -10,8 +10,5 @@ public class Main {
         frame.setSize(width, height);
         frame.getContentPane().add(new Window(width, height));
         frame.setVisible(true);
-        while (true) {
-            frame.repaint();
-        }
     }
 }
