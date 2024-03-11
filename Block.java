@@ -1,5 +1,10 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import java.awt.image.BufferedImage;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 
 public class Block extends JComponent {
     private Color _color;
@@ -14,8 +19,16 @@ public class Block extends JComponent {
     }
 
     public void draw(Graphics g, int x, int y) {
+        int xPoint = x + (_frameX * size);
+        int yPoint = y + (_frameY * size);
         g.setColor(_color);
-        g.fillRect(x + (_frameX * size), y + (_frameY * size), size, size);
+        g.fillRect(xPoint, yPoint, size, size);
+        try {
+            BufferedImage image = ImageIO.read(new File("texture.png"));
+            g.drawImage(image, xPoint, yPoint, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getFrameX() {

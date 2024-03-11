@@ -1,39 +1,46 @@
 import javax.swing.*;
 import javax.sound.sampled.*;
+import javax.imageio.ImageIO;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 public class Window extends JPanel implements ActionListener {
-    int _width, _height, paddX, paddY;
-    int gameW = 250;
-    int gameH = 450;
-    int frameX = 10;
-    int frameY = 18;
+    private int _width, _height, paddX, paddY;
+    private static int gameW = 250;
+    private static int gameH = 450;
+    private static int frameX = 10;
+    private static int frameY = 18;
 
-    int movementTimer = 0;
-    int currentLevel = 0;
-    int period = 100;
+    private int movementTimer = 0;
+    private int currentLevel = 0;
+    private int period = 80;
 
-    int lineClearAlpha = 255;
-    int lineClearY = 0;
-    int lineClearSize = 0;
+    private int lineClearAlpha = 255;
+    private int lineClearY = 0;
+    
+    private boolean placed = false;
+    private boolean gameOver = false;
+    private boolean gameOverSoundPlayed = false;
 
-    boolean collisionFound = false;
-    boolean placed = false;
+    private Timer timer = new Timer(33, this);
+    private Level level = null;
 
-    Timer timer = new Timer(33, this);
-    Level level = null;
+    private Block[][] gameFrame = new Block[frameX][frameY];
+    private Block[] activeBlocks = new Block[4];
 
-    Block[][] gameFrame = new Block[frameX][frameY];
-    Block[] activeBlocks = new Block[4];
-    Block lowestActiveBlock;
+    private Shape shape = null;
+    private Shape nextShape = null;
 
-    Shape shape = null;
-    Shape nextShape = null;
+    private static String gameOverLabel = "GAME OVER";
+    private static String nextShapeLabel = "NEXT";
+    private static String levelLabel = "LEVEL";
+    private static String scoreLabel = "SCORE";
 
     public Window(int width, int height) {
         InputMap im = getInputMap(WHEN_FOCUSED);
@@ -85,13 +92,15 @@ public class Window extends JPanel implements ActionListener {
             }
         });
 
+        // Initialise the game.
         level = new Level();
         _width = width;
         _height = height;
-        paddX = _width / 4;
+        paddX = _width / 2 - (gameW / 2);
         paddY = 20;
         createTetromino();
         timer.start();
+        playSound("music.wav", -15);
     }
 
     public void actionPerformed(ActionEvent ev) {
@@ -101,20 +110,24 @@ public class Window extends JPanel implements ActionListener {
 
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        // Stroke s = g2.getStroke();
 
         /*
          * Game Frame
          */
-        g2.setColor(Color.BLACK);
-        g2.fillRect(0, 0, _width, _height);
-        g2.setColor(Color.WHITE);
+        try {
+            BufferedImage image = ImageIO.read(new File("background.png"));
+            g.drawImage(image, 0, 0, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        g2.setColor(Color.CYAN);
         g2.setStroke(new BasicStroke(1));
         g2.drawRect(paddX, paddY, gameW, gameH);
+        g2.setColor(Color.WHITE);
         g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
-        g.drawString("NEXT", 25, paddY + 13);
-        g.drawString("LEVEL", paddX + gameW + 20, paddY + 13);
-        g.drawString("SCORE", paddX + gameW + 20, paddY + 70);
+        g.drawString(nextShapeLabel, 25, paddY + 13);
+        g.drawString(levelLabel, paddX + gameW + 20, paddY + 13);
+        g.drawString(scoreLabel, paddX + gameW + 20, paddY + 70);
         g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 18));
         g.drawString(String.valueOf(level.getLevel()), paddX + gameW + 20, paddY + 40);
         g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + gameW + 20, paddY + 97);
@@ -130,29 +143,40 @@ public class Window extends JPanel implements ActionListener {
         /*
          * Movement
          */
-        if (!placed) {
-            if (movementTimer >= period) {
-                move(1, false, false);
-                movementTimer = 0;
+        if (!gameOver) {
+            if (!placed) {
+                if (movementTimer >= period) {
+                    move(1, false, false);
+                    movementTimer = 0;
+                }
+                movementTimer++;
+            } else {
+                placed = false;
+                playSound("tetromino_placed.wav", 1);
+                for (Block b2 : activeBlocks)
+                    b2.setLanded(true);
+                level.addScore(1);
+                checkLineClearing();
             }
-            movementTimer++;
-        } else {
-            placed = false;
-            playSound("tetromino_placed.wav");
-            for (Block b2 : activeBlocks)
-                b2.setLanded(true);
-            level.addScore(1);
-            checkLineClearing();
         }
 
         /*
-         * Draw
+         * Draw blocks, line clear animation and check game over condition.
          */
         displayBlocks(g);
         if (lineClearY != 0 && lineClearAlpha > 0) {
             g.setColor(new Color(255, 255, 255, lineClearAlpha));
             g.fillRect(paddX, paddY + (lineClearY * 25), gameW, 25);
-            lineClearAlpha -= 10;
+            lineClearAlpha -= 20;
+        }
+        if (gameOver) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 24));
+            g.drawString(gameOverLabel, _width / 2 - g.getFontMetrics().stringWidth(gameOverLabel) / 2, _height / 2);
+            if (!gameOverSoundPlayed) {
+                playSound("game_over.wav", 1);
+                gameOverSoundPlayed = true;
+            }
         }
     }
 
@@ -193,6 +217,7 @@ public class Window extends JPanel implements ActionListener {
         int topRow = 0;
         int clearRow = 0;
 
+        // Attempt a full search to identify a full row of blocks.
         for (int i = frameY - 1; i >= 0; i--) {
             filled = true;
             emptySlotsInRow = 0;
@@ -214,12 +239,12 @@ public class Window extends JPanel implements ActionListener {
             if (emptySlotsInRow == fullRowEmpty)
                 break;
         }
-
+        // Clear line as an entire row contains blocks.
         if (foundRow) {
             lineClearAlpha = 255;
             lineClearY = clearRow;
-            lineClearSize = gameFrame[0][lineClearY].getBlockSize();
-            playSound("line_clear.wav");
+            // gameFrame[0][lineClearY].getBlockSize();
+            playSound("line_clear.wav", 1);
 
             for (int k = 0; k < frameX; k++) {
                 gameFrame[k][clearRow] = null;
@@ -239,8 +264,9 @@ public class Window extends JPanel implements ActionListener {
             checkLineClearing();
             return;
         }
+        // Check if player has scored high enough to level up.
         if (level.getLevel() > currentLevel) {
-            playSound("level_up.wav");
+            playSound("level_up.wav", 1);
             currentLevel = level.getLevel();
             if (period - 10 <= 0) {
                 if (period - 1 > 0)
@@ -258,6 +284,7 @@ public class Window extends JPanel implements ActionListener {
         boolean validLeftRotation = false;
         boolean validRightRotation = false;
 
+        // Has the player moved their shape horizontally.
         if (horizontal) {
             for (Block b : activeBlocks) {
                 if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > frameX - 1)
@@ -274,6 +301,7 @@ public class Window extends JPanel implements ActionListener {
         }
         activeBlocks = temp;
 
+        // Has the player rotated their shape.
         if (rotate) {
             activeBlocks = shape.rotate();
             while (!validLeftRotation && !validRightRotation) {
@@ -296,7 +324,7 @@ public class Window extends JPanel implements ActionListener {
                 }
             }
         }
-
+        // Move the block.
         for (Block b : activeBlocks) {
             if (!rotate) {
                 if (horizontal)
@@ -316,7 +344,14 @@ public class Window extends JPanel implements ActionListener {
             shape = nextShape;
         nextShape = pickNextTetromino();
         activeBlocks = shape.draw();
-
+        // Check if any of the new blocks would spawn inside a placed shape. If so, game over.
+        for (int i = 0; i < activeBlocks.length; i++) {
+            Block block = activeBlocks[i];
+            if (gameFrame[block.getFrameX()][block.getFrameY()] != null) {
+                gameOver = true;
+                break;
+            }
+        }
     }
 
     public Shape pickNextTetromino() {
@@ -342,19 +377,23 @@ public class Window extends JPanel implements ActionListener {
             case 5:
                 s = new S();
                 break;
-            case 6:
             default:
                 break;
         }
         return s;
     }
 
-    public void playSound(String path) {
+    public void playSound(String path, float gain) {
         try {
+            // Get audio file.
             File file = new File(path);
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
             Clip clip = AudioSystem.getClip();
             clip.open(audioStream);
+            // Set volume.
+            FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            volume.setValue(volume.getValue() + gain);
+            // Play audio.
             clip.start();
         } catch (Exception ex) {
             System.out.println(ex);

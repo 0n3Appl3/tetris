@@ -1,4 +1,9 @@
+import javax.imageio.ImageIO;
+
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.awt.image.BufferedImage;
 
 public abstract class Shape {
     protected Block[] blocks = new Block[4];
@@ -20,10 +25,20 @@ public abstract class Shape {
 
     public void previewShape(Graphics g) {
         int size = 25;
+        int xPoint = 0;
+        int yPoint = 0;
 
         g.setColor(color);
         for (int i = 0; i < x.length; i++) {
-            g.fillRect(50 + ((x[i] - 4) * size), 50 + (y[i] * size), size, size);
+            xPoint = 50 + ((x[i] - 4) * size);
+            yPoint = 50 + (y[i] * size);
+            g.fillRect(xPoint, yPoint, size, size);
+            try {
+                BufferedImage image = ImageIO.read(new File("texture.png"));
+                g.drawImage(image, xPoint, yPoint, null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
