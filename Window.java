@@ -23,6 +23,9 @@ public class Window extends JPanel implements ActionListener {
 
     private int lineClearAlpha = 255;
     private int lineClearY = 0;
+    private int consecutiveLines = 0;
+
+    private int praiseTextAlpha = 255;
     
     private boolean placed = false;
     private boolean gameOver = false;
@@ -41,6 +44,7 @@ public class Window extends JPanel implements ActionListener {
     private static String nextShapeLabel = "NEXT";
     private static String levelLabel = "LEVEL";
     private static String scoreLabel = "SCORE";
+    private String praiseText = "";
 
     public Window(int width, int height) {
         InputMap im = getInputMap(WHEN_FOCUSED);
@@ -100,7 +104,7 @@ public class Window extends JPanel implements ActionListener {
         paddY = 20;
         createTetromino();
         timer.start();
-        playSound("music.wav", -15);
+        playSound("music.wav", -17, true);
     }
 
     public void actionPerformed(ActionEvent ev) {
@@ -149,6 +153,7 @@ public class Window extends JPanel implements ActionListener {
                     move(1, false, false);
                     movementTimer = 0;
                 }
+                move(0, false, false);
                 movementTimer++;
             } else {
                 placed = false;
@@ -168,6 +173,12 @@ public class Window extends JPanel implements ActionListener {
             g.setColor(new Color(255, 255, 255, lineClearAlpha));
             g.fillRect(paddX, paddY + (lineClearY * 25), gameW, 25);
             lineClearAlpha -= 20;
+        }
+        if (praiseTextAlpha > 0) {
+            g.setColor(new Color(255, 255, 255, praiseTextAlpha));
+            g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 24));
+            g.drawString(praiseText, _width / 2 - g.getFontMetrics().stringWidth(praiseText) / 2, _height / 5);
+            praiseTextAlpha -= 5;
         }
         if (gameOver) {
             g.setColor(Color.WHITE);
@@ -243,8 +254,7 @@ public class Window extends JPanel implements ActionListener {
         if (foundRow) {
             lineClearAlpha = 255;
             lineClearY = clearRow;
-            // gameFrame[0][lineClearY].getBlockSize();
-            playSound("line_clear.wav", 1);
+            playSound("line_clear.wav", -1);
 
             for (int k = 0; k < frameX; k++) {
                 gameFrame[k][clearRow] = null;
@@ -261,12 +271,16 @@ public class Window extends JPanel implements ActionListener {
             }
             level.addLinesCleared();
             level.addScore(10);
+            consecutiveLines++;
+            if (consecutiveLines == 4)
+                playRandomVoiceSound();
             checkLineClearing();
             return;
         }
         // Check if player has scored high enough to level up.
         if (level.getLevel() > currentLevel) {
             playSound("level_up.wav", 1);
+            playRandomVoiceSound();
             currentLevel = level.getLevel();
             if (period - 10 <= 0) {
                 if (period - 1 > 0)
@@ -275,6 +289,7 @@ public class Window extends JPanel implements ActionListener {
                period -= 10;
             }
         }
+        consecutiveLines = 0;
         createTetromino();
     }
 
@@ -329,7 +344,7 @@ public class Window extends JPanel implements ActionListener {
             if (!rotate) {
                 if (horizontal)
                     b.setFrameX(b.getFrameX() + magnitude);
-                else
+                else if (magnitude > 0)
                     b.setFrameY(b.getFrameY() + 1);
             }
             gameFrame[b.getFrameX()][b.getFrameY()] = b;
@@ -383,20 +398,58 @@ public class Window extends JPanel implements ActionListener {
         return s;
     }
 
-    public void playSound(String path, float gain) {
+    public void playRandomVoiceSound() {
+        int rand = (int) (Math.random() * 3);
+
+        switch (rand) {
+            case 0:
+                playSound("voice1.wav");
+                praiseText = "EXCELLENT";
+                break;
+            case 1:
+                playSound("voice2.wav");
+                praiseText = "SPECTACULAR";
+                break;
+            case 2:
+                playSound("voice3.wav");
+                praiseText = "WELL DONE";
+                break;
+            case 3:
+                playSound("voice4.wav");
+                praiseText = "IMPRESSIVE";
+                break;
+            default:
+                break;
+        }
+        praiseTextAlpha = 255;
+    }
+
+    public void playSound(String path, float gain, boolean loop) {
         try {
             // Get audio file.
             File file = new File(path);
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
             Clip clip = AudioSystem.getClip();
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
             clip.open(audioStream);
             // Set volume.
-            FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-            volume.setValue(volume.getValue() + gain);
+            if (gain != 0) {
+                FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                volume.setValue(volume.getValue() + gain);
+            }
+            if (loop)
+                clip.loop(Clip.LOOP_CONTINUOUSLY);
             // Play audio.
             clip.start();
         } catch (Exception ex) {
             System.out.println(ex);
         }
+    }
+
+    public void playSound(String path) {
+        playSound(path, 0);
+    }
+
+    public void playSound(String path, float gain) {
+        playSound(path, 0, false);
     }
 }
