@@ -24,7 +24,7 @@ public class Block extends JComponent {
         g.setColor(_color);
         g.fillRect(xPoint, yPoint, size, size);
         try {
-            BufferedImage image = ImageIO.read(new File("texture.png"));
+            BufferedImage image = ImageIO.read(new File("textures/block.png"));
             g.drawImage(image, xPoint, yPoint, null);
         } catch (IOException e) {
             e.printStackTrace();
