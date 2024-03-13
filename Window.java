@@ -13,10 +13,10 @@ import java.util.ArrayList;
 
 public class Window extends JPanel implements ActionListener {
     private int _width, _height, paddX, paddY;
-    private static int gameW = 250;
-    private static int gameH = 450;
-    private static int frameX = 10;
-    private static int frameY = 18;
+    private final int GAME_W = 250;
+    private final int GAME_H = 450;
+    private final int FRAME_X = 10;
+    private final int FRAME_Y = 18;
 
     private int movementTimer = 0;
     private int currentLevel = 0;
@@ -35,16 +35,16 @@ public class Window extends JPanel implements ActionListener {
     private Timer timer = new Timer(33, this);
     private Level level = null;
 
-    private Block[][] gameFrame = new Block[frameX][frameY];
+    private Block[][] gameFrame = new Block[FRAME_X][FRAME_Y];
     private Block[] activeBlocks = new Block[4];
 
     private Shape shape = null;
     private Shape nextShape = null;
 
-    private static String gameOverLabel = "GAME OVER";
-    private static String nextShapeLabel = "NEXT";
-    private static String levelLabel = "LEVEL";
-    private static String scoreLabel = "SCORE";
+    private final String GAME_OVER_LABEL = "Game Over";
+    private final String NEXT_SHAPE_LABEL = "Next";
+    private final String LEVEL_LABEL = "Level";
+    private final String SCORE_LABEL = "Score";
     private String praiseText = "";
 
     public Window(int width, int height) {
@@ -101,7 +101,7 @@ public class Window extends JPanel implements ActionListener {
         level = new Level();
         _width = width;
         _height = height;
-        paddX = _width / 2 - (gameW / 2);
+        paddX = _width / 2 - (GAME_W / 2);
         paddY = 20;
         createTetromino();
         timer.start();
@@ -127,15 +127,15 @@ public class Window extends JPanel implements ActionListener {
         }
         g2.setColor(Color.CYAN);
         g2.setStroke(new BasicStroke(1));
-        g2.drawRect(paddX, paddY, gameW, gameH);
+        g2.drawRect(paddX, paddY, GAME_W, GAME_H);
         g2.setColor(Color.WHITE);
         g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
-        g.drawString(nextShapeLabel, 25, paddY + 13);
-        g.drawString(levelLabel, paddX + gameW + 20, paddY + 13);
-        g.drawString(scoreLabel, paddX + gameW + 20, paddY + 70);
+        g.drawString(NEXT_SHAPE_LABEL.toUpperCase(), 25, paddY + 13);
+        g.drawString(LEVEL_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 13);
+        g.drawString(SCORE_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 70);
         g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 18));
-        g.drawString(String.valueOf(level.getLevel()), paddX + gameW + 20, paddY + 40);
-        g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + gameW + 20, paddY + 97);
+        g.drawString(String.valueOf(level.getLevel()), paddX + GAME_W + 20, paddY + 40);
+        g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + GAME_W + 20, paddY + 97);
 
         if (nextShape != null)
             nextShape.previewShape(g);
@@ -173,7 +173,7 @@ public class Window extends JPanel implements ActionListener {
         if (lineClearY.size() != 0 && lineClearAlpha > 0) {
             g.setColor(new Color(255, 255, 255, lineClearAlpha));
             for (int line : lineClearY) {
-                g.fillRect(paddX, paddY + (line * 25), gameW, 25);
+                g.fillRect(paddX, paddY + (line * 25), GAME_W, 25);
             }
             lineClearAlpha -= 20;
         }
@@ -182,13 +182,13 @@ public class Window extends JPanel implements ActionListener {
         if (praiseTextAlpha > 0) {
             g.setColor(new Color(255, 255, 255, praiseTextAlpha));
             g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 24));
-            g.drawString(praiseText, _width / 2 - g.getFontMetrics().stringWidth(praiseText) / 2, _height / 5);
+            g.drawString(praiseText.toUpperCase(), _width / 2 - g.getFontMetrics().stringWidth(praiseText.toUpperCase()) / 2, _height / 5);
             praiseTextAlpha -= 5;
         }
         if (gameOver) {
             g.setColor(Color.WHITE);
             g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 24));
-            g.drawString(gameOverLabel, _width / 2 - g.getFontMetrics().stringWidth(gameOverLabel) / 2, _height / 2);
+            g.drawString(GAME_OVER_LABEL.toUpperCase(), _width / 2 - g.getFontMetrics().stringWidth(GAME_OVER_LABEL.toUpperCase()) / 2, _height / 2);
             if (!gameOverSoundPlayed) {
                 playSound("sounds/game_over.wav", 1);
                 gameOverSoundPlayed = true;
@@ -197,8 +197,8 @@ public class Window extends JPanel implements ActionListener {
     }
 
     public void displayBlocks(Graphics g) {
-        for (int i = 0; i < frameY; i++) {
-            for (int j = 0; j < frameX; j++) {
+        for (int i = 0; i < FRAME_Y; i++) {
+            for (int j = 0; j < FRAME_X; j++) {
                 Block b = gameFrame[j][i];
 
                 if (b != null)
@@ -210,7 +210,7 @@ public class Window extends JPanel implements ActionListener {
     public void checkPlaced() {
         for (int i = 0; i < activeBlocks.length; i++) {
             Block block = activeBlocks[i];
-            if (block.getFrameY() + 1 > frameY - 1) {
+            if (block.getFrameY() + 1 > FRAME_Y - 1) {
                 placed = true;
                 break;
             }
@@ -234,10 +234,10 @@ public class Window extends JPanel implements ActionListener {
         int clearRow = 0;
 
         // Attempt a full search to identify a full row of blocks.
-        for (int i = frameY - 1; i >= 0; i--) {
+        for (int i = FRAME_Y - 1; i >= 0; i--) {
             filled = true;
             emptySlotsInRow = 0;
-            for (int j = frameX - 1; j >= 0; j--) {
+            for (int j = FRAME_X - 1; j >= 0; j--) {
                 Block b = gameFrame[j][i];
                 if (b == null) {
                     filled = false;
@@ -262,10 +262,10 @@ public class Window extends JPanel implements ActionListener {
             if (consecutiveLines < 1)
                 playSound("sounds/line_clear.wav", -2);
 
-            for (int k = 0; k < frameX; k++)
+            for (int k = 0; k < FRAME_X; k++)
                 gameFrame[k][clearRow] = null;
             for (int l = clearRow - 1; l >= topRow; l--) {
-                for (int m = 0; m < frameX; m++) {
+                for (int m = 0; m < FRAME_X; m++) {
                     Block b2 = gameFrame[m][l];
                     if (b2 != null) {
                         b2.setFrameY(b2.getFrameY() + 1);
@@ -307,7 +307,7 @@ public class Window extends JPanel implements ActionListener {
         // Has the player moved their shape horizontally.
         if (horizontal) {
             for (Block b : activeBlocks) {
-                if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > frameX - 1)
+                if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > FRAME_X - 1)
                     return;
                 b2 = gameFrame[b.getFrameX() + magnitude][b.getFrameY()];
                 if (b2 != null && b2.hasLanded())
@@ -407,19 +407,19 @@ public class Window extends JPanel implements ActionListener {
         switch (rand) {
             case 0:
                 playSound("sounds/voice1.wav");
-                praiseText = "EXCELLENT";
+                praiseText = "Excellent";
                 break;
             case 1:
                 playSound("sounds/voice2.wav");
-                praiseText = "SPECTACULAR";
+                praiseText = "Spectacular";
                 break;
             case 2:
                 playSound("sounds/voice3.wav");
-                praiseText = "WELL DONE";
+                praiseText = "Well Done";
                 break;
             case 3:
                 playSound("sounds/voice4.wav");
-                praiseText = "IMPRESSIVE";
+                praiseText = "Impressive";
                 break;
             default:
                 break;
