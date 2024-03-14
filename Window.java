@@ -48,6 +48,7 @@ public class Window extends JPanel implements ActionListener {
     private final String NEXT_SHAPE_LABEL = "Next";
     private final String LEVEL_LABEL = "Level";
     private final String SCORE_LABEL = "Score";
+    private final String LINES_CLEARED_LABEL = "Lines";
     private String praiseText = "";
 
     public Window(int width, int height) {
@@ -127,17 +128,19 @@ public class Window extends JPanel implements ActionListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        g2.setColor(Color.CYAN);
-        g2.setStroke(new BasicStroke(1));
+        g2.setColor(new Color(28, 145, 138, 175));
+        g2.setStroke(new BasicStroke(2));
         g2.drawRect(paddX, paddY, GAME_W, GAME_H);
-        g.setColor(Color.WHITE);
+        g.setColor(new Color(255, 255, 255, 200));
         g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
         g.drawString(NEXT_SHAPE_LABEL.toUpperCase(), 25, paddY + 13);
-        g.drawString(LEVEL_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 13);
-        g.drawString(SCORE_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 70);
-        g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 18));
-        g.drawString(String.valueOf(level.getLevel()), paddX + GAME_W + 20, paddY + 40);
-        g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + GAME_W + 20, paddY + 97);
+        g.drawString(SCORE_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 13);
+        g.drawString(LINES_CLEARED_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 70);
+        g.drawString(LEVEL_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 127);
+        g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 26));
+        g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + GAME_W + 20, paddY + 40);
+        g.drawString(String.valueOf(level.getLinesCleared()), paddX + GAME_W + 20, paddY + 97);
+        g.drawString(String.valueOf(level.getLevel()), paddX + GAME_W + 20, paddY + 154);
 
         if (nextShape != null) nextShape.previewShape(g);
 
@@ -253,6 +256,7 @@ public class Window extends JPanel implements ActionListener {
             lineClearAlpha = 255;
             lineClearY.add(clearRow);
             if (consecutiveLines < 1) playSound("sounds/line_clear.wav", -2);
+            consecutiveLines++;
 
             for (int k = 0; k < FRAME_X; k++) gameFrame[k][clearRow] = null;
             for (int l = clearRow - 1; l >= topRow; l--) {
@@ -266,8 +270,7 @@ public class Window extends JPanel implements ActionListener {
                 }
             }
             level.addLinesCleared();
-            level.addScore(10);
-            consecutiveLines++;
+            level.addScore(consecutiveLines * 10);
             if (consecutiveLines == 4) playRandomVoiceSound();
             checkLineClearing();
             return;
@@ -277,7 +280,7 @@ public class Window extends JPanel implements ActionListener {
             playSound("sounds/level_up.wav", -2);
             playRandomVoiceSound();
             currentLevel = level.getLevel();
-            period = (period - 10 <= 0 && period - 1 > 0) ? period - 1 : period - 10;
+            period = (period - 15 <= 0 && period - 1 > 0) ? period - 1 : period - 15;
         }
         consecutiveLines = 0;
         createTetromino();
@@ -289,6 +292,7 @@ public class Window extends JPanel implements ActionListener {
         boolean validLeftRotation = false;
         boolean validRightRotation = false;
 
+        if (gameOver) return;
         // Has the player moved their shape horizontally.
         if (horizontal) {
             for (Block b : activeBlocks) {
