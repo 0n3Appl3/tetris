@@ -32,12 +32,15 @@ public class Window extends JPanel implements ActionListener {
     private boolean gameOver = false;
     private boolean gameOverSoundPlayed = false;
 
-    private Timer timer = new Timer(33, this);
+    private Timer timer = new Timer(30, this);
     private Level level = null;
 
     private Block[][] gameFrame = new Block[FRAME_X][FRAME_Y];
     private Block[] activeBlocks = new Block[4];
 
+    private final int BAG_SIZE = 7;
+    private ArrayList<Integer> shapeHistory = new ArrayList<Integer>();
+    private int randomShapeId = 0;
     private Shape shape = null;
     private Shape nextShape = null;
 
@@ -109,8 +112,7 @@ public class Window extends JPanel implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent ev) {
-        if (ev.getSource() == timer)
-            repaint();
+        if (ev.getSource() == timer) repaint();
     }
 
     public void paint(Graphics g) {
@@ -128,7 +130,7 @@ public class Window extends JPanel implements ActionListener {
         g2.setColor(Color.CYAN);
         g2.setStroke(new BasicStroke(1));
         g2.drawRect(paddX, paddY, GAME_W, GAME_H);
-        g2.setColor(Color.WHITE);
+        g.setColor(Color.WHITE);
         g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
         g.drawString(NEXT_SHAPE_LABEL.toUpperCase(), 25, paddY + 13);
         g.drawString(LEVEL_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 13);
@@ -137,8 +139,7 @@ public class Window extends JPanel implements ActionListener {
         g.drawString(String.valueOf(level.getLevel()), paddX + GAME_W + 20, paddY + 40);
         g.drawString(String.format("%,.0f", (double)level.getScore()), paddX + GAME_W + 20, paddY + 97);
 
-        if (nextShape != null)
-            nextShape.previewShape(g);
+        if (nextShape != null) nextShape.previewShape(g);
 
         /*
          * Collision Checking
@@ -154,13 +155,11 @@ public class Window extends JPanel implements ActionListener {
                     move(1, false, false);
                     movementTimer = 0;
                 }
-                move(0, false, false);
                 movementTimer++;
             } else {
                 placed = false;
                 playSound("sounds/tetromino_placed.wav", 1);
-                for (Block b2 : activeBlocks)
-                    b2.setLanded(true);
+                for (Block b2 : activeBlocks) b2.setLanded(true);
                 level.addScore(1);
                 checkLineClearing();
             }
@@ -172,13 +171,10 @@ public class Window extends JPanel implements ActionListener {
         displayBlocks(g);
         if (lineClearY.size() != 0 && lineClearAlpha > 0) {
             g.setColor(new Color(255, 255, 255, lineClearAlpha));
-            for (int line : lineClearY) {
-                g.fillRect(paddX, paddY + (line * 25), GAME_W, 25);
-            }
+            for (int line : lineClearY) g.fillRect(paddX, paddY + (line * 25), GAME_W, 25);
             lineClearAlpha -= 20;
         }
-        if (lineClearAlpha <= 0)
-            lineClearY = new ArrayList<Integer>();
+        if (lineClearAlpha <= 0) lineClearY = new ArrayList<Integer>();
         if (praiseTextAlpha > 0) {
             g.setColor(new Color(255, 255, 255, praiseTextAlpha));
             g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 24));
@@ -200,9 +196,7 @@ public class Window extends JPanel implements ActionListener {
         for (int i = 0; i < FRAME_Y; i++) {
             for (int j = 0; j < FRAME_X; j++) {
                 Block b = gameFrame[j][i];
-
-                if (b != null)
-                    b.draw(g, paddX, paddY);
+                if (b != null) b.draw(g, paddX, paddY);
             }
         }
     }
@@ -252,18 +246,15 @@ public class Window extends JPanel implements ActionListener {
                 clearRow = i;
                 foundRow = true;
             }
-            if (emptySlotsInRow == fullRowEmpty)
-                break;
+            if (emptySlotsInRow == fullRowEmpty) break;
         }
         // Clear line as an entire row contains blocks.
         if (foundRow) {
             lineClearAlpha = 255;
             lineClearY.add(clearRow);
-            if (consecutiveLines < 1)
-                playSound("sounds/line_clear.wav", -2);
+            if (consecutiveLines < 1) playSound("sounds/line_clear.wav", -2);
 
-            for (int k = 0; k < FRAME_X; k++)
-                gameFrame[k][clearRow] = null;
+            for (int k = 0; k < FRAME_X; k++) gameFrame[k][clearRow] = null;
             for (int l = clearRow - 1; l >= topRow; l--) {
                 for (int m = 0; m < FRAME_X; m++) {
                     Block b2 = gameFrame[m][l];
@@ -277,8 +268,7 @@ public class Window extends JPanel implements ActionListener {
             level.addLinesCleared();
             level.addScore(10);
             consecutiveLines++;
-            if (consecutiveLines == 4)
-                playRandomVoiceSound();
+            if (consecutiveLines == 4) playRandomVoiceSound();
             checkLineClearing();
             return;
         }
@@ -287,12 +277,7 @@ public class Window extends JPanel implements ActionListener {
             playSound("sounds/level_up.wav", -2);
             playRandomVoiceSound();
             currentLevel = level.getLevel();
-            if (period - 10 <= 0) {
-                if (period - 1 > 0)
-                    period--;
-            } else {
-               period -= 10;
-            }
+            period = (period - 10 <= 0 && period - 1 > 0) ? period - 1 : period - 10;
         }
         consecutiveLines = 0;
         createTetromino();
@@ -307,11 +292,9 @@ public class Window extends JPanel implements ActionListener {
         // Has the player moved their shape horizontally.
         if (horizontal) {
             for (Block b : activeBlocks) {
-                if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > FRAME_X - 1)
-                    return;
+                if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > FRAME_X - 1) return;
                 b2 = gameFrame[b.getFrameX() + magnitude][b.getFrameY()];
-                if (b2 != null && b2.hasLanded())
-                    return;
+                if (b2 != null && b2.hasLanded()) return;
             }
         }
         for (int i = 0; i < activeBlocks.length; i++) {
@@ -349,11 +332,16 @@ public class Window extends JPanel implements ActionListener {
             if (!rotate) {
                 if (horizontal)
                     b.setFrameX(b.getFrameX() + magnitude);
-                else if (magnitude > 0)
+                else
                     b.setFrameY(b.getFrameY() + 1);
             }
             gameFrame[b.getFrameX()][b.getFrameY()] = b;
         }
+        shape.saveState(activeBlocks);
+    }
+
+    public void displayTetromino() {
+        for (Block b : activeBlocks) gameFrame[b.getFrameX()][b.getFrameY()] = b;
         shape.saveState(activeBlocks);
     }
 
@@ -369,13 +357,17 @@ public class Window extends JPanel implements ActionListener {
                 break;
             }
         }
+        displayTetromino();
     }
 
     public Shape pickNextTetromino() {
         Shape s = new Z();
-        int rand = (int) (Math.random() * 8);
+        do randomShapeId = (int) (Math.random() * 7);
+        while (shapeHistory.contains(randomShapeId));
+        shapeHistory.add(randomShapeId);
+        if (shapeHistory.size() == BAG_SIZE) shapeHistory = new ArrayList<Integer>();
 
-        switch (rand) {
+        switch (randomShapeId) {
             case 0:
                 s = new I();
                 break;
@@ -401,7 +393,7 @@ public class Window extends JPanel implements ActionListener {
     }
 
     public void playRandomVoiceSound() {
-        int rand = (int) (Math.random() * 3);
+        int rand = (int) (Math.random() * 4);
         praiseTextAlpha = 255;
 
         switch (rand) {
@@ -438,8 +430,7 @@ public class Window extends JPanel implements ActionListener {
                 FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                 volume.setValue(volume.getValue() + gain);
             }
-            if (loop)
-                clip.loop(Clip.LOOP_CONTINUOUSLY);
+            if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
             // Play audio.
             clip.start();
         } catch (Exception ex) {

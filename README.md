@@ -13,7 +13,7 @@ The popular geometric puzzle game coded in Java. Game textures inspired by Tetri
 These features may be added later.
 * Restart the game after the game over screen
 * Hold tetromino pieces
-* Improve the tetromino randomisation system
+* Allow tetromino shuffling before locking in place
 
 ### Credits
 Hotel California - 8-bit Version by 8 Bit Universe
