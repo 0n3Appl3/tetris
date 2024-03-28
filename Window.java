@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Window extends JPanel implements ActionListener {
     private int _width, _height, paddX, paddY;
@@ -19,14 +20,17 @@ public class Window extends JPanel implements ActionListener {
     private final int FRAME_Y = 18;
 
     private int movementTimer = 0;
+    private int lineTimer = 0;
     private int currentLevel = 0;
     private int period = 80;
+    private int linePeriod = 500;
 
     private int lineClearAlpha = 255;
     private ArrayList<Integer> lineClearY = new ArrayList<Integer>();
     private int consecutiveLines = 0;
 
     private int praiseTextAlpha = 255;
+    private int warningTextAlpha = 255;
     
     private boolean placed = false;
     private boolean gameOver = false;
@@ -49,6 +53,7 @@ public class Window extends JPanel implements ActionListener {
     private final String LEVEL_LABEL = "Level";
     private final String SCORE_LABEL = "Score";
     private final String LINES_CLEARED_LABEL = "Lines";
+    private final String WARNING_LABEL = "Warning";
     private String praiseText = "";
 
     public Window(int width, int height) {
@@ -109,7 +114,7 @@ public class Window extends JPanel implements ActionListener {
         paddY = 20;
         createTetromino();
         timer.start();
-        playSound("music/music.wav", -17, true);
+        playSound("music/music3.wav", -10, true);
     }
 
     public void actionPerformed(ActionEvent ev) {
@@ -132,6 +137,7 @@ public class Window extends JPanel implements ActionListener {
         g2.setStroke(new BasicStroke(2));
         g2.drawRect(paddX, paddY, GAME_W, GAME_H);
         g.setColor(new Color(255, 255, 255, 200));
+        g.fillRect(paddX, paddY + GAME_H + 7, (int) (((double) lineTimer / (double) linePeriod) * GAME_W), 7);
         g.setFont(new Font("HelveticaNeue", Font.PLAIN, 14));
         g.drawString(NEXT_SHAPE_LABEL.toUpperCase(), 25, paddY + 13);
         g.drawString(SCORE_LABEL.toUpperCase(), paddX + GAME_W + 20, paddY + 13);
@@ -158,7 +164,12 @@ public class Window extends JPanel implements ActionListener {
                     move(1, false, false);
                     movementTimer = 0;
                 }
+                if (lineTimer >= linePeriod) {
+                    createDirtyBlocksLayer();
+                    lineTimer = 0;
+                }
                 movementTimer++;
+                lineTimer++;
             } else {
                 placed = false;
                 playSound("sounds/tetromino_placed.wav", 1);
@@ -184,6 +195,16 @@ public class Window extends JPanel implements ActionListener {
             g.drawString(praiseText.toUpperCase(), _width / 2 - g.getFontMetrics().stringWidth(praiseText.toUpperCase()) / 2, _height / 5);
             praiseTextAlpha -= 5;
         }
+        if (!gameOver && lineTimer > (int) (0.8 * linePeriod)) {
+            if (warningTextAlpha <= 0) {
+                warningTextAlpha = 255;
+                playSound("sounds/warning.wav", -5);
+            }
+            g.setColor(new Color(224, 74, 74, warningTextAlpha));
+            g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 15));
+            g.drawString(WARNING_LABEL.toUpperCase(), _width / 2 - g.getFontMetrics().stringWidth(WARNING_LABEL.toUpperCase()) / 2, _height / 8);
+        }
+        if (warningTextAlpha > 0) warningTextAlpha -= 20;
         if (gameOver) {
             g.setColor(Color.WHITE);
             g.setFont(new Font("HelveticaNeue-Bold", Font.PLAIN, 24));
@@ -342,6 +363,28 @@ public class Window extends JPanel implements ActionListener {
             gameFrame[b.getFrameX()][b.getFrameY()] = b;
         }
         shape.saveState(activeBlocks);
+    }
+
+    public void createDirtyBlocksLayer() {
+        int noBlockAtFrameX = (int) (Math.random() * FRAME_X);
+        for (int i = 0; i < FRAME_Y - 1; i++) {
+            for (int j = 0; j < FRAME_X; j++) {
+                Block b = gameFrame[j][i + 1];
+                if (Arrays.asList(activeBlocks).contains(b)) continue;
+                if (b != null) {
+                    b.setFrameY(b.getFrameY() - 1);
+                    gameFrame[b.getFrameX()][b.getFrameY()] = b;
+                    gameFrame[j][i + 1] = null;
+                } 
+            }
+        }
+        for (int k = 0; k < FRAME_X; k++) {
+            if (k == noBlockAtFrameX) continue;
+            Block b = new Block(k, FRAME_Y - 1, new Color(46, 46, 46));
+            b.setLanded(true);
+            gameFrame[k][FRAME_Y - 1] = b;
+        }
+        playSound("sounds/bad_spawn.wav");
     }
 
     public void displayTetromino() {

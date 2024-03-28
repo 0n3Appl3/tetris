@@ -16,4 +16,6 @@ These features may be added later.
 * Allow tetromino shuffling before locking in place
 
 ### Credits
-Hotel California - 8-bit Version by 8 Bit Universe
+Hotel California - 8-bit Version by 8 Bit Universe (music)
+Let It Be - 8-bit Version by 8 Bit Universe (music2)
+You're My Heart, You're My Soul - MIDI Version by Tetris 4000 (music3)
