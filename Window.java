@@ -39,10 +39,16 @@ public class Window extends JPanel implements ActionListener {
     private Timer timer = new Timer(30, this);
     private Level level = null;
 
-    private Block[][] gameFrame = new Block[FRAME_X][FRAME_Y];
-    private Block[] activeBlocks = new Block[4];
+    private final int CLASSIC_SHAPE_SIZE = 4;
+    private final int PENTIX_SHAPE_SIZE = 5;
+    private final int CLASSIC_BAG_SIZE = 7;
+    private final int PENTIX_BAG_SIZE = 14;
 
-    private final int BAG_SIZE = 7;
+    private int shapeSize = 5;
+    private Block[][] gameFrame = new Block[FRAME_X][FRAME_Y];
+    private Block[] activeBlocks = null;
+
+    private int bagSize = 14;
     private ArrayList<Integer> shapeHistory = new ArrayList<Integer>();
     private int randomShapeId = 0;
     private Shape shape = null;
@@ -56,7 +62,7 @@ public class Window extends JPanel implements ActionListener {
     private final String WARNING_LABEL = "Warning";
     private String praiseText = "";
 
-    public Window(int width, int height) {
+    public Window(int width, int height, int mode) {
         InputMap im = getInputMap(WHEN_FOCUSED);
         ActionMap am = getActionMap();
 
@@ -107,14 +113,27 @@ public class Window extends JPanel implements ActionListener {
         });
 
         // Initialise the game.
+        switch (mode) {
+            case 1:
+                shapeSize = CLASSIC_SHAPE_SIZE;
+                bagSize = CLASSIC_BAG_SIZE;
+                break;
+            case 2:
+                shapeSize = PENTIX_SHAPE_SIZE;
+                bagSize = PENTIX_BAG_SIZE;
+                break;
+            default:
+                break;
+        }
         level = new Level();
         _width = width;
         _height = height;
         paddX = _width / 2 - (GAME_W / 2);
         paddY = 20;
+        activeBlocks = new Block[shapeSize];
         createTetromino();
         timer.start();
-        playSound("music/music3.wav", -10, true);
+        playSound("music/music2.wav", -20, true);
     }
 
     public void actionPerformed(ActionEvent ev) {
@@ -173,7 +192,10 @@ public class Window extends JPanel implements ActionListener {
             } else {
                 placed = false;
                 playSound("sounds/tetromino_placed.wav", 1);
-                for (Block b2 : activeBlocks) b2.setLanded(true);
+                for (Block b2 : activeBlocks) {
+                    if (b2 == null) continue;
+                    b2.setLanded(true);
+                }
                 level.addScore(1);
                 checkLineClearing();
             }
@@ -228,6 +250,7 @@ public class Window extends JPanel implements ActionListener {
     public void checkPlaced() {
         for (int i = 0; i < activeBlocks.length; i++) {
             Block block = activeBlocks[i];
+            if (block == null) continue;
             if (block.getFrameY() + 1 > FRAME_Y - 1) {
                 placed = true;
                 break;
@@ -308,7 +331,7 @@ public class Window extends JPanel implements ActionListener {
     }
 
     public void move(int magnitude, boolean horizontal, boolean rotate) {
-        Block[] temp = new Block[4];
+        Block[] temp = new Block[shapeSize];
         Block b2 = null;
         boolean validLeftRotation = false;
         boolean validRightRotation = false;
@@ -317,6 +340,7 @@ public class Window extends JPanel implements ActionListener {
         // Has the player moved their shape horizontally.
         if (horizontal) {
             for (Block b : activeBlocks) {
+                if (b == null) continue;
                 if (b.getFrameX() + magnitude < 0 || b.getFrameX() + magnitude > FRAME_X - 1) return;
                 b2 = gameFrame[b.getFrameX() + magnitude][b.getFrameY()];
                 if (b2 != null && b2.hasLanded()) return;
@@ -324,6 +348,7 @@ public class Window extends JPanel implements ActionListener {
         }
         for (int i = 0; i < activeBlocks.length; i++) {
             Block tempB = activeBlocks[i];
+            if (tempB == null) continue;
             temp[i] = tempB;
             gameFrame[tempB.getFrameX()][tempB.getFrameY()] = null;
         }
@@ -337,6 +362,7 @@ public class Window extends JPanel implements ActionListener {
                 validRightRotation = true;
 
                 for (Block b : activeBlocks) {
+                    if (b == null) continue;
                     if (b.getFrameX() < 0)
                         validLeftRotation = false;
                     else if (b.getFrameX() > 9)
@@ -344,6 +370,7 @@ public class Window extends JPanel implements ActionListener {
                 }
                 if (!validLeftRotation || !validRightRotation) {
                     for (Block b : activeBlocks) {
+                        if (b == null) continue;
                         if (!validLeftRotation)
                             b.setFrameX(b.getFrameX() + 1);
                         else
@@ -354,6 +381,7 @@ public class Window extends JPanel implements ActionListener {
         }
         // Move the block.
         for (Block b : activeBlocks) {
+            if (b == null) continue;
             if (!rotate) {
                 if (horizontal)
                     b.setFrameX(b.getFrameX() + magnitude);
@@ -388,7 +416,10 @@ public class Window extends JPanel implements ActionListener {
     }
 
     public void displayTetromino() {
-        for (Block b : activeBlocks) gameFrame[b.getFrameX()][b.getFrameY()] = b;
+        for (Block b : activeBlocks) {
+            if (b == null) continue;
+            gameFrame[b.getFrameX()][b.getFrameY()] = b;
+        }
         shape.saveState(activeBlocks);
     }
 
@@ -399,6 +430,7 @@ public class Window extends JPanel implements ActionListener {
         // Check if any of the new blocks would spawn inside a placed shape. If so, game over.
         for (int i = 0; i < activeBlocks.length; i++) {
             Block block = activeBlocks[i];
+            if (block == null) continue;
             if (gameFrame[block.getFrameX()][block.getFrameY()] != null) {
                 gameOver = true;
                 break;
@@ -408,11 +440,11 @@ public class Window extends JPanel implements ActionListener {
     }
 
     public Shape pickNextTetromino() {
-        Shape s = new Z();
-        do randomShapeId = (int) (Math.random() * 7);
+        Shape s = null;
+        do randomShapeId = (int) (Math.random() * bagSize);
         while (shapeHistory.contains(randomShapeId));
         shapeHistory.add(randomShapeId);
-        if (shapeHistory.size() == BAG_SIZE) shapeHistory = new ArrayList<Integer>();
+        if (shapeHistory.size() == bagSize) shapeHistory = new ArrayList<Integer>();
 
         switch (randomShapeId) {
             case 0:
@@ -432,6 +464,30 @@ public class Window extends JPanel implements ActionListener {
                 break;
             case 5:
                 s = new S();
+                break;
+            case 6:
+                s = new Z();
+                break;
+            case 7:
+                s = new IP();
+                break;
+            case 8:
+                s = new OP();
+                break;
+            case 9:
+                s = new TP();
+                break;
+            case 10:
+                s = new JP();
+                break;
+            case 11:
+                s = new LP();
+                break;
+            case 12:
+                s = new SP();
+                break;
+            case 13:
+                s = new ZP();
                 break;
             default:
                 break;

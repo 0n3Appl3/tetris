@@ -3,7 +3,7 @@ The popular geometric puzzle game coded in Java. Game textures inspired by Tetri
 
 ## Installation
 1. Compile the code `javac *.java`
-2. Launch the game by entering the command `java Main`
+2. Launch the game by entering the command `java Main <classic/pentix>`
 
 ## How to Play
 - Use arrow keys to move the tetromino pieces

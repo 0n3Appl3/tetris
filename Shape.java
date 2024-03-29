@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.awt.image.BufferedImage;
 
 public abstract class Shape {
-    protected Block[] blocks = new Block[4];
+    protected Block[] blocks = new Block[5];
     protected Block[] previewBlocks = null;
     protected Color color = null;
     protected int[] x = null;
@@ -20,6 +20,7 @@ public abstract class Shape {
         blocks[1] = new Block(x[1], y[1], color);
         blocks[2] = new Block(x[2], y[2], color);
         blocks[3] = new Block(x[3], y[3], color);
+        if (x.length == 5) blocks[4] = new Block(x[4], y[4], color);
         return blocks;
     }
 

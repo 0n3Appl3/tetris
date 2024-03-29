@@ -16,7 +16,7 @@ public class Level {
 
         if (linesCleared % linesToLevelUp == 0) {
             count++;
-            linesToLevelUp += (linesToLevelUp + 5);
+            linesToLevelUp += linesToLevelUp;
         }
     }
 
